@@ -32,6 +32,7 @@ const CategoriesPage: NextPageWithLayout = () => {
     useState(false);
   const [editCategoryDialogOpen, setEditCategoryDialogOpen] = useState(false);
   const [categoryToDelete, setCategoryToDelete] = useState<string | null>(null);
+  const [categoryToEdit, setCategoryToEdit] = useState<string | null>(null);
 
   const createCategoryForm = useForm<CategoryFormSchema>({
     resolver: zodResolver(categoryFormSchema),
@@ -58,12 +59,34 @@ const CategoriesPage: NextPageWithLayout = () => {
     },
   });
 
+  const { mutate: deleteCategory } = api.category.deleteCategory.useMutation({
+    onSuccess: async () => {
+      await apiUtils.category.getCategories?.invalidate();
+      alert("Category deleted successfully");
+
+      // Reset the category to delete
+      setCategoryToDelete(null);
+    },
+  });
+
+  const { mutate: editCategory } = api.category.editCategory.useMutation({
+    onSuccess: async () => {
+      await apiUtils.category.getCategories?.invalidate();
+      alert("Category edited successfully");
+
+      // Reset the form and close the dialog
+      editCategoryForm.reset();
+      setEditCategoryDialogOpen(false);
+    },
+  });
+
   const handleSubmitCreateCategory = (data: CategoryFormSchema) => {
     createCategory(data);
   };
 
   const handleSubmitEditCategory = (data: CategoryFormSchema) => {
-    console.log(data);
+    if (!categoryToEdit) return;
+    editCategory({ id: categoryToEdit, name: data.name });
   };
 
   const handleClickEditCategory = (category: Category) => {
@@ -74,8 +97,8 @@ const CategoriesPage: NextPageWithLayout = () => {
     });
   };
 
-  const handleClickDeleteCategory = (categoryId: string) => {
-    setCategoryToDelete(categoryId);
+  const handleClickDeleteCategory = (id: string) => {
+    setCategoryToDelete(id);
   };
 
   return (
@@ -130,6 +153,14 @@ const CategoriesPage: NextPageWithLayout = () => {
                 name={category.name}
                 productCount={category.productCount}
                 onDelete={() => handleClickDeleteCategory(category.id)}
+                onEdit={() => {
+                  setCategoryToEdit(category.id);
+                  handleClickEditCategory({
+                    id: category.id,
+                    name: category.name,
+                    count: category.productCount,
+                  });
+                }}
               />
             ),
           )
@@ -187,7 +218,16 @@ const CategoriesPage: NextPageWithLayout = () => {
           </AlertDialogDescription>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <Button variant="destructive">Delete</Button>
+            <Button
+              variant="destructive"
+              onClick={() => {
+                if (categoryToDelete) {
+                  deleteCategory({ id: categoryToDelete });
+                }
+              }}
+            >
+              Confirm Delete
+            </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
