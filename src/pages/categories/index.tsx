@@ -25,6 +25,7 @@ import type { ReactElement } from "react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import type { NextPageWithLayout } from "../_app";
+import { api } from "@/utils/api";
 
 const CategoriesPage: NextPageWithLayout = () => {
   const [createCategoryDialogOpen, setCreateCategoryDialogOpen] =
@@ -40,8 +41,25 @@ const CategoriesPage: NextPageWithLayout = () => {
     resolver: zodResolver(categoryFormSchema),
   });
 
+  const apiUtils = api.useUtils();
+  const { data: categories } = api.category.getCategories.useQuery();
+
+  const { mutate: createCategory } = api.category.createCategory.useMutation({
+    onSuccess: async () => {
+      await apiUtils.category.getCategories?.invalidate();
+      // Reset the form and close the dialog
+      alert("Category created successfully");
+
+      // Reset the form
+      createCategoryForm.reset();
+
+      // Close the dialog
+      setCreateCategoryDialogOpen(false);
+    },
+  });
+
   const handleSubmitCreateCategory = (data: CategoryFormSchema) => {
-    console.log(data);
+    createCategory(data);
   };
 
   const handleSubmitEditCategory = (data: CategoryFormSchema) => {
@@ -103,7 +121,20 @@ const CategoriesPage: NextPageWithLayout = () => {
           </AlertDialog>
         </div>
       </DashboardHeader>
-
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+        {categories?.map(
+          (category: { id: string; name: string; productCount: number }) => {
+            return (
+              <CategoryCatalogCard
+                key={category.id}
+                name={category.name}
+                productCount={category.productCount}
+                onDelete={() => handleClickDeleteCategory(category.id)}
+              />
+            );
+          },
+        )}
+      </div>
       <div>
         {CATEGORIES.length === 0 ? (
           <div className="rounded-md border">
