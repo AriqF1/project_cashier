@@ -31,6 +31,22 @@ export const categoryRouter = createTRPCRouter({
       return newCategory;
     }),
 
+  editCategory: protectedProcedure
+    .input(
+      z.object({
+        id: z.string().uuid("Invalid category ID"),
+        name: z.string().min(1, "Category name is required"),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { db } = ctx;
+      const editedCategory = await db.category.update({
+        where: { id: input.id },
+        data: { name: input.name },
+      });
+      return editedCategory;
+    }),
+
   deleteCategory: protectedProcedure
     .input(
       z.object({
