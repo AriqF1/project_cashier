@@ -18,6 +18,7 @@ export const categoryRouter = createTRPCRouter({
     .input(
       z.object({
         name: z.string().min(1, "Category name is required"),
+        productCount: z.number().optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
