@@ -5,7 +5,7 @@ import {
   DashboardTitle,
 } from "@/components/layouts/DashboardLayout";
 import type { NextPageWithLayout } from "../_app";
-import type { ReactElement } from "react";
+import { useState, type ReactElement } from "react";
 import { Button } from "@/components/ui/button";
 import { PRODUCTS } from "@/data/mock";
 import { ProductMenuCard } from "@/components/shared/product/ProductMenuCard";
@@ -18,6 +18,8 @@ import type { ProductFormSchema } from "@/forms/products";
 const ProductsPage: NextPageWithLayout = () => {
   const apiUtils = api.useUtils();
   const { data: products } = api.product.getProducts.useQuery();
+
+  const [createProductDialogOpen, setCreateProductDialogOpen] = useState();
 
   const { mutate: createProduct } = api.product.createProduct.useMutation({
     onSuccess: async () => {
