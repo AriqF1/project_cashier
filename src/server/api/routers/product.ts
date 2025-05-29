@@ -1,5 +1,8 @@
+import { supabaseAdmin } from "@/server/supabase-admin";
 import { createTRPCRouter, protectedProcedure } from "../trpc";
 import { z } from "zod";
+import { Bucket } from "@/server/bucket";
+import { TRPCError } from "@trpc/server";
 
 export const productRouter = createTRPCRouter({
   getProducts: protectedProcedure.query(async ({ ctx }) => {
@@ -46,4 +49,20 @@ export const productRouter = createTRPCRouter({
       });
       return newProduct;
     }),
+
+  createProductImageUploadSignedUrl: protectedProcedure.mutation(
+    async ({ ctx }) => {
+      const { data, error } = await supabaseAdmin.storage
+        .from(Bucket.ProductsImage)
+        .createSignedUploadUrl(`${Date.now()}.jpeg`);
+
+      if (error) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: error.message,
+        });
+      }
+      return data;
+    },
+  ),
 });
