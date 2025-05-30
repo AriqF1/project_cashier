@@ -5,8 +5,6 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import type { ProductFormSchema } from "@/forms/products";
-import { useFormContext } from "react-hook-form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -16,34 +14,53 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useState } from "react";
-
-type Category = {
-  id: string;
-  name: string;
-};
+import type { ProductFormSchema } from "@/forms/products";
+import { uploadFileToSignedUrl } from "@/lib/supabase";
+import { Bucket } from "@/server/bucket";
+import { api } from "@/utils/api";
+import { type ChangeEvent } from "react";
+import { useFormContext } from "react-hook-form";
 
 type ProductFormProps = {
   onSubmit: (values: ProductFormSchema) => void;
-  categories: Category[];
+  onChangeImageUrl: (imageUrl: string) => void;
 };
 
-export const ProductForm = ({ onSubmit, categories }: ProductFormProps) => {
+export const ProductForm = ({
+  onSubmit,
+  onChangeImageUrl,
+}: ProductFormProps) => {
   const form = useFormContext<ProductFormSchema>();
-  const [uploadedImageUrl, setUploadedImageUrl] = useState<string | null>(null);
 
-  const imageChangeHandler = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const { data: categories } = api.category.getCategories.useQuery();
+
+  const { mutateAsync: createImageSignedUrl } =
+    api.product.createProductImageUploadSignedUrl.useMutation();
+
+  const imageChangeHandler = async (e: ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
 
     if (files && files?.length > 0) {
       const file = files[0];
 
       if (!file) return;
+
+      const { path, token } = await createImageSignedUrl();
+
+      const imageUrl = await uploadFileToSignedUrl({
+        bucket: Bucket.ProductImages,
+        file,
+        path,
+        token,
+      });
+
+      onChangeImageUrl(imageUrl);
+      alert("Uploaded image!");
     }
   };
 
   return (
-    <form onSubmit={form.handleSubmit(onSubmit)}>
+    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
       <FormField
         control={form.control}
         name="name"
@@ -57,6 +74,7 @@ export const ProductForm = ({ onSubmit, categories }: ProductFormProps) => {
           </FormItem>
         )}
       />
+
       <FormField
         control={form.control}
         name="price"
@@ -70,27 +88,32 @@ export const ProductForm = ({ onSubmit, categories }: ProductFormProps) => {
           </FormItem>
         )}
       />
+
       <FormField
         control={form.control}
         name="categoryId"
         render={({ field }) => (
           <FormItem>
+            <FormLabel>Category</FormLabel>
             <FormControl>
               <Select
                 value={field.value}
-                onValueChange={field.onChange}
-                name={field.name}
-                disabled={field.disabled}
+                onValueChange={(value) => {
+                  field.onChange(value);
+                }}
               >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a category" />
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Category" />
                 </SelectTrigger>
+
                 <SelectContent>
-                  {categories.map((category) => (
-                    <SelectItem key={category.id} value={category.id}>
-                      {category.name}
-                    </SelectItem>
-                  ))}
+                  {categories?.map((category) => {
+                    return (
+                      <SelectItem key={category.id} value={category.id}>
+                        {category.name}
+                      </SelectItem>
+                    );
+                  })}
                 </SelectContent>
               </Select>
             </FormControl>
@@ -102,7 +125,7 @@ export const ProductForm = ({ onSubmit, categories }: ProductFormProps) => {
       <div className="space-y-1">
         <Label>Product Image</Label>
 
-        <Input type="file" accept="image/*" />
+        <Input onChange={imageChangeHandler} type="file" accept="image/*" />
       </div>
     </form>
   );
