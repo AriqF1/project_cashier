@@ -1,29 +1,88 @@
-# Create T3 App
+# 💸 Project Cashier
 
-This is a [T3 Stack](https://create.t3.gg/) project bootstrapped with `create-t3-app`.
+A modern cashier web application built with **Next.js**, **TypeScript**, and **Prisma ORM**. This project is designed to simulate a point-of-sale (POS) system for small to medium businesses. It includes features like product management, transaction handling, and database integration.
 
-## What's next? How do I make an app with this?
+---
 
-We try to keep this project as simple as possible, so you can start with just the scaffolding we set up for you, and add additional things later when they become necessary.
+## 🚀 Features
 
-If you are not familiar with the different technologies used in this project, please refer to the respective docs. If you still are in the wind, please join our [Discord](https://t3.gg/discord) and ask for help.
+- 🔐 Authentication ( clerk authentication)
+- 🧾 Transaction handling
+- 📦 Product and inventory management
+- 📊 Dashboard (future implementation)
+- 🧩 Component-based architecture
+- 🛢️ Prisma + PostgreSQL (or other SQL DB)
+- 💅 Styled with Tailwind CSS
 
-- [Next.js](https://nextjs.org)
-- [NextAuth.js](https://next-auth.js.org)
-- [Prisma](https://prisma.io)
-- [Drizzle](https://orm.drizzle.team)
-- [Tailwind CSS](https://tailwindcss.com)
-- [tRPC](https://trpc.io)
+---
 
-## Learn More
+## Folder Structure
 
-To learn more about the [T3 Stack](https://create.t3.gg/), take a look at the following resources:
+```bash
+project_cashier/
+├── prisma/                 # Prisma schema and seed script
+│   ├── schema.prisma
+│   └── seed.ts
+├── public/                 # Static assets (e.g., favicon)
+├── src/
+│   ├── app/                # Next.js App Router pages
+│   ├── components/         # Reusable UI components
+│   ├── lib/                # Utilities and Prisma client
+│   └── types/              # TypeScript type definitions
+├── .env.example            # Example environment variables
+├── components.json         # Auto-import config (Nuxt-style setup or tooling)
+├── eslint.config.js        # ESLint configuration
+├── next.config.js          # Next.js configuration
+├── package.json            # Project metadata and dependencies
+├── postcss.config.js       # PostCSS configuration
+├── prettier.config.js      # Prettier configuration
+├── start-database.sh       # Shell script to start local database
+├── tsconfig.json           # TypeScript configuration
+└── README.md               # Project documentation
+```
 
-- [Documentation](https://create.t3.gg/)
-- [Learn the T3 Stack](https://create.t3.gg/en/faq#what-learning-resources-are-currently-available) — Check out these awesome tutorials
+## INFO
 
-You can check out the [create-t3-app GitHub repository](https://github.com/t3-oss/create-t3-app) — your feedback and contributions are welcome!
+Please make sure to read the .env.example and make configurate the key needed in supabase
 
-## How do I deploy this?
+```
+DATABASE_URL="postgresql://postgres:password@localhost:5432/simple-pos"
+DIRECT_URL="postgresql://postgres:password@localhost:5432/simple-pos"
 
-Follow our deployment guides for [Vercel](https://create.t3.gg/en/deployment/vercel), [Netlify](https://create.t3.gg/en/deployment/netlify) and [Docker](https://create.t3.gg/en/deployment/docker) for more information.
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="clerk-public-key"
+CLERK_SECRET_KEY="clerl-private-key"
+
+NEXT_PUBLIC_SUPABASE_URL="next-public-supabase-url"
+NEXT_PUBLIC_SUPABASE_ANON_KEY="next-public-supabase-anon-key"
+SUPABASE_SERVICE_ROLE_KEY= "supabase-service-role-key"
+```
+
+## Setup Instructions
+
+1. Clone the repository
+
+```
+git clone https://github.com/AriqF1/project_cashier.git
+cd project_cashier
+```
+
+2. Install dependencies
+
+```
+npm install
+```
+
+3. Setup environment variables
+
+```
+cp .env.example .env
+```
+
+4. Setup the database
+
+```
+npx prisma migrate dev --name init
+npx prisma db seed
+```
+
+## This project is licensed under the 📄 MIT License.
