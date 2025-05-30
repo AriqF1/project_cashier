@@ -1,6 +1,6 @@
-import { supabaseAdmin } from "@/server/supabase-admin";
-import { createTRPCRouter, protectedProcedure } from "../trpc";
 import { z } from "zod";
+import { createTRPCRouter, protectedProcedure } from "../trpc";
+import { supabaseAdmin } from "@/server/supabase-admin";
 import { Bucket } from "@/server/bucket";
 import { TRPCError } from "@trpc/server";
 
@@ -22,15 +22,18 @@ export const productRouter = createTRPCRouter({
         },
       },
     });
+
     return products;
   }),
 
   createProduct: protectedProcedure
     .input(
       z.object({
-        name: z.string().min(1, "Product name is required"),
-        price: z.coerce.number().min(1000, "Price must be at least 1000"),
+        name: z.string().min(3),
+        price: z.number().min(1000),
         categoryId: z.string(),
+        // multipart/form-data | JSON
+        imageUrl: z.string().url(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -45,24 +48,25 @@ export const productRouter = createTRPCRouter({
               id: input.categoryId,
             },
           },
+          imageUrl: input.imageUrl,
         },
       });
+
       return newProduct;
     }),
 
-  createProductImageUploadSignedUrl: protectedProcedure.mutation(
-    async ({ ctx }) => {
-      const { data, error } = await supabaseAdmin.storage
-        .from(Bucket.ProductsImage)
-        .createSignedUploadUrl(`${Date.now()}.jpeg`);
+  createProductImageUploadSignedUrl: protectedProcedure.mutation(async () => {
+    const { data, error } = await supabaseAdmin.storage
+      .from(Bucket.ProductImages)
+      .createSignedUploadUrl(`${Date.now()}.jpeg`);
 
-      if (error) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: error.message,
-        });
-      }
-      return data;
-    },
-  ),
+    if (error) {
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: error.message,
+      });
+    }
+
+    return data;
+  }),
 });
