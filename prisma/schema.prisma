@@ -61,7 +61,4 @@ model OrderItem {
 
   price     Int
   quantity  Int
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 }
